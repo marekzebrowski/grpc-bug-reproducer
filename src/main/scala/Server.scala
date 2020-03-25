@@ -2,7 +2,7 @@ package pl.inti
 import akka.actor._
 import akka.grpc.scaladsl.ServiceHandler
 import akka.http.scaladsl.{Http, Http2, HttpConnectionContext}
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.{HttpRequest, _}
 import akka.stream.ActorMaterializer
 import pl.inti.helloworld.{GreeterService, GreeterServiceHandler, HelloReply, HelloRequest}
 
@@ -30,8 +30,10 @@ object Server {
       val srv = new SrvImpl
       val handler =  GreeterServiceHandler.partial(srv)
       val service = ServiceHandler.concatOrNotFound(handler)
+      val statusRoute: HttpRequest => Future[HttpResponse] =
+        req => Future.successful(HttpResponse(StatusCodes.OK))
       Http().bindAndHandleAsync(
-        service,
+      statusRoute,
         "0.0.0.0",
         8081, connectionContext = HttpConnectionContext())
       Http2().bindAndHandleAsync(
